@@ -4,7 +4,7 @@ import torch
 from collections import OrderedDict
 from torch.utils import model_zoo
 
-import os 
+import os
 dir_path = os.path.dirname(os.path.realpath(__file__))
 
 __all__ = ['bagnet9', 'bagnet17', 'bagnet33']
@@ -49,11 +49,11 @@ class Bottleneck(nn.Module):
 
         if self.downsample is not None:
             residual = self.downsample(x)
-        
+
         if residual.size(-1) != out.size(-1):
             diff = residual.size(-1) - out.size(-1)
             residual = residual[:,:,:-diff,:-diff]
-        
+
         out += residual
         out = self.relu(out)
 
@@ -136,7 +136,7 @@ def bagnet33(pretrained=False, strides=[2, 2, 2, 1], **kwargs):
     """
     model = BagNet(Bottleneck, [3, 4, 6, 3], strides=strides, kernel3=[1,1,1,1], **kwargs)
     if pretrained:
-        model.load_state_dict(model_zoo.load_url(model_urls['bagnet33']))
+        model.load_state_dict(model_zoo.load_url(model_urls['bagnet33'], map_location=torch.device('cpu')))
     return model
 
 def bagnet17(pretrained=False, strides=[2, 2, 2, 1], **kwargs):
@@ -147,7 +147,7 @@ def bagnet17(pretrained=False, strides=[2, 2, 2, 1], **kwargs):
     """
     model = BagNet(Bottleneck, [3, 4, 6, 3], strides=strides, kernel3=[1,1,1,0], **kwargs)
     if pretrained:
-        model.load_state_dict(model_zoo.load_url(model_urls['bagnet17']))
+        model.load_state_dict(model_zoo.load_url(model_urls['bagnet17'], map_location=torch.device('cpu')))
     return model
 
 def bagnet9(pretrained=False, strides=[2, 2, 2, 1], **kwargs):
@@ -158,5 +158,5 @@ def bagnet9(pretrained=False, strides=[2, 2, 2, 1], **kwargs):
     """
     model = BagNet(Bottleneck, [3, 4, 6, 3], strides=strides, kernel3=[1,1,0,0], **kwargs)
     if pretrained:
-        model.load_state_dict(model_zoo.load_url(model_urls['bagnet9']))
+        model.load_state_dict(model_zoo.load_url(model_urls['bagnet9'], map_location=torch.device('cpu')))
     return model
