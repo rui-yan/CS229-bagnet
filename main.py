@@ -76,7 +76,7 @@ def train_model(model, dataloaders, criterion, optimizer, num_epochs=25):
             running_corrects = 0
 
             # Iterate over data.
-            for idx, inputs, labels in enumerate(dataloaders[phase]):
+            for inputs, labels in dataloaders[phase]:
                 inputs = inputs.to(device)
                 labels = labels.to(device)
 
@@ -98,10 +98,9 @@ def train_model(model, dataloaders, criterion, optimizer, num_epochs=25):
                         optimizer.step()
 
                 # TEST
-                if idx in range(4):
-                    if phase == 'val':
-                        _. pred = torch.max(outputs, 1)
-                        print('truth: ', labels, ', predicted: ', pred)
+                if phase == 'val':
+                    _. pred = torch.max(outputs, 1)
+                    print('truth: ', labels, ', predicted: ', pred)
 
                 # statistics
                 running_loss += loss.item() * inputs.size(0)
@@ -128,6 +127,7 @@ def train_model(model, dataloaders, criterion, optimizer, num_epochs=25):
 
     # load best model weights
     model.load_state_dict(best_model_wts)
+
     return model, val_acc_history
 
 
@@ -200,7 +200,7 @@ dataloaders_dict = {x: torch.utils.data.DataLoader(image_datasets[x], batch_size
 
 # Detect if we have a GPU available
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-print("[Using". device)
+print("[Using", device , "...]")
 
 # Create the optimizer to update only desired parameters (only output layer in our case).
 # Send the model to CPU
@@ -231,7 +231,7 @@ criterion = nn.CrossEntropyLoss()
 
 # Train and evaluate
 print("[Training the model begun ....]")
-model_ft, hist = train_model(model_name, model_ft, dataloaders_dict, criterion,
+model_ft, hist = train_model(model_ft, dataloaders_dict, criterion,
     optimizer_ft, num_epochs=num_epochs)
 
 print("[Save the best model]")
