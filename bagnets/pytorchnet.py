@@ -130,7 +130,6 @@ class BagNet(nn.Module):
 
 def bagnet33(pretrained=False, strides=[2, 2, 2, 1], **kwargs):
     """Constructs a Bagnet-33 model.
-
     Args:
         pretrained (bool): If True, returns a model pre-trained on ImageNet
     """
@@ -141,7 +140,6 @@ def bagnet33(pretrained=False, strides=[2, 2, 2, 1], **kwargs):
 
 def bagnet17(pretrained=False, strides=[2, 2, 2, 1], **kwargs):
     """Constructs a Bagnet-17 model.
-
     Args:
         pretrained (bool): If True, returns a model pre-trained on ImageNet
     """
@@ -152,7 +150,6 @@ def bagnet17(pretrained=False, strides=[2, 2, 2, 1], **kwargs):
 
 def bagnet9(pretrained=False, strides=[2, 2, 2, 1], **kwargs):
     """Constructs a Bagnet-9 model.
-
     Args:
         pretrained (bool): If True, returns a model pre-trained on ImageNet
     """

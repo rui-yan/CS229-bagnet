@@ -2,12 +2,12 @@ import numpy as np
 import matplotlib.pyplot as plt
 from skimage import feature, transform
 
-def plot_heatmap(heatmap, original, ax, cmap='RdBu_r', 
+def plot_heatmap(heatmap, original, ax, cmap='RdBu_r',
                  percentile=99, dilation=0.5, alpha=0.25):
     """
-    Plots the heatmap on top of the original image 
+    Plots the heatmap on top of the original image
     (which is shown by most important edges).
-    
+
     Parameters
     ----------
     heatmap : Numpy Array of shape [X, X]
@@ -26,11 +26,11 @@ def plot_heatmap(heatmap, original, ax, cmap='RdBu_r',
         thus the image overlay.
     alpha : float in [0, 1]
         Opacity of the overlay image.
-    
+
     """
     if len(heatmap.shape) == 3:
         heatmap = np.mean(heatmap, 0)
-    
+
     dx, dy = 0.05, 0.05
     xx = np.arange(0.0, heatmap.shape[1], dx)
     yy = np.arange(0.0, heatmap.shape[0], dy)
@@ -42,7 +42,7 @@ def plot_heatmap(heatmap, original, ax, cmap='RdBu_r',
     if original is not None:
         # Compute edges (to overlay to heatmaps later)
         original_greyscale = original if len(original.shape) == 2 else np.mean(original, axis=-1)
-        in_image_upscaled = transform.rescale(original_greyscale, dilation, mode='constant', 
+        in_image_upscaled = transform.rescale(original_greyscale, dilation, mode='constant',
                                               multichannel=False, anti_aliasing=True)
         edges = feature.canny(in_image_upscaled).astype(float)
         edges[edges < 0.5] = np.nan
@@ -51,21 +51,21 @@ def plot_heatmap(heatmap, original, ax, cmap='RdBu_r',
         edges[:, :5] = np.nan
         edges[:, -5:] = np.nan
         overlay = edges
-    
+
     abs_max = np.percentile(np.abs(heatmap), percentile)
     abs_min = abs_max
-    
+
     ax.imshow(heatmap, extent=extent, interpolation='none', cmap=cmap, vmin=-abs_min, vmax=abs_max)
     if overlay is not None:
         ax.imshow(overlay, extent=extent, interpolation='none', cmap=cmap_original, alpha=alpha)
-        
+
 
 def generate_heatmap_pytorch(model, image, target, patchsize):
     """
     Generates high-resolution heatmap for a BagNet by decomposing the
     image into all possible patches and by computing the logits for
     each patch.
-    
+
     Parameters
     ----------
     model : Pytorch Model
@@ -76,20 +76,21 @@ def generate_heatmap_pytorch(model, image, target, patchsize):
         Class for which the heatmap is computed.
     patchsize : int
         The size of the receptive field of the given BagNet.
-    
+
     """
     import torch
-    
+
     with torch.no_grad():
         # pad with zeros
         _, c, x, y = image.shape
         padded_image = np.zeros((c, x + patchsize - 1, y + patchsize - 1))
         padded_image[:, (patchsize-1)//2:(patchsize-1)//2 + x, (patchsize-1)//2:(patchsize-1)//2 + y] = image[0]
         image = padded_image[None].astype(np.float32)
-        
+
         # turn to torch tensor
-        input = torch.from_numpy(image).cuda()
-        
+        # input = torch.from_numpy(image).cuda()
+        input = torch.from_numpy(image)
+
         # extract patches
         patches = input.permute(0, 2, 3, 1)
         patches = patches.unfold(1, patchsize, 1).unfold(2, patchsize, 1)
