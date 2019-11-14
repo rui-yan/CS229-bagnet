@@ -88,8 +88,10 @@ def generate_heatmap_pytorch(model, image, target, patchsize):
         image = padded_image[None].astype(np.float32)
 
         # turn to torch tensor
-        # input = torch.from_numpy(image).cuda()
-        input = torch.from_numpy(image)
+        if torch.cuda.is_available():
+            input = torch.from_numpy(image).cuda()
+        else:
+            input = torch.from_numpy(image)
 
         # extract patches
         patches = input.permute(0, 2, 3, 1)

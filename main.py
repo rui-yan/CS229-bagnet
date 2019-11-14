@@ -1,54 +1,59 @@
-from __future__ import print_function
-from __future__ import division
-import bagnets.pytorchnet
-<<<<<<< Updated upstream
-pytorch_model = bagnets.pytorchnet.bagnet17(pretrained=True)
-pytorch_model.eval()
-=======
+from __future__ import print_function, division
+import numpy as np
+import pandas as pd
 import torch
 import torch.nn as nn
 import torch.optim as optim
-import numpy as np
 import torchvision
 from torchvision import datasets, models, transforms
 import matplotlib.pyplot as plt
 import time
 import os
 import copy
+import matplotlib.pyplot as plt
+import bagnets.pytorchnet
+from bagnets.utils import plot_heatmap, generate_heatmap_pytorch
+
 print("PyTorch Version: ",torch.__version__)
 print("Torchvision Version: ",torchvision.__version__)
 
 
-import numpy as np
-import matplotlib.pyplot as plt
-from bagnets.utils import plot_heatmap, generate_heatmap_pytorch
-
-# %pylab inline
-# load model
-
+# Tutorial for reference: https://pytorch.org/tutorials/beginner/finetuning_torchvision_models_tutorial.html
+# https://www.guru99.com/pytorch-tutorial.html
 
 # Top level data directory. Here we assume the format of the directory conforms
 #   to the ImageFolder structure
-# data_dir = "/Users/homeMac/Documents/School/Grad/Q1/CS229/FinalProject/CS229-final-project/hymenoptera_data"
 data_dir = "/Users/ruiyan/Documents/Github/CS229-final-project/hymenoptera_data"
 
-# Models to choose from [resnet, alexnet, vgg, squeezenet, densenet, inception]
+# Models to choose from [resnet, bagnet]
 model_name = "bagnet"
+
+# Save the best model to this directory
+model_save_dir = "/Users/ruiyan/Documents/Github/CS229-final-project/" + model_name + ".pth"
 
 # Number of classes in the dataset
 num_classes = 2
 
 # Batch size for training (change depending on how much memory you have)
-batch_size = 50
+# batch_size = 50
+batch_size = 8
 
 # Number of epochs to train for
-num_epochs = 1
+# num_epochs = 15
+num_epochs = 5
+# num_epochs = 50 # we should do this on google cloud
 
 # Flag for feature extracting. When False, we finetune the whole model,
 #   when True we only update the reshaped layer params
 feature_extract = True
 
 def train_model(model, dataloaders, criterion, optimizer, num_epochs=25):
+
+    """
+    This function trains for a specified number of epochs, running validation step
+    after each epoch. Keeps track of best performing model and returns it at end
+    of training. Training and validation accuracies printed after each epoch.
+    """
     since = time.time()
 
     val_acc_history = []
@@ -71,7 +76,7 @@ def train_model(model, dataloaders, criterion, optimizer, num_epochs=25):
             running_corrects = 0
 
             # Iterate over data.
-            for inputs, labels in dataloaders[phase]:
+            for idx, inputs, labels in enumerate(dataloaders[phase]):
                 inputs = inputs.to(device)
                 labels = labels.to(device)
 
@@ -92,9 +97,16 @@ def train_model(model, dataloaders, criterion, optimizer, num_epochs=25):
                         loss.backward()
                         optimizer.step()
 
+                # TEST
+                if idx in range(4):
+                    if phase == 'val':
+                        _. pred = torch.max(outputs, 1)
+                        print('truth: ', labels, ', predicted: ', pred)
+
                 # statistics
                 running_loss += loss.item() * inputs.size(0)
                 running_corrects += torch.sum(preds == labels.data)
+
 
             epoch_loss = running_loss / len(dataloaders[phase].dataset)
             epoch_acc = running_corrects.double() / len(dataloaders[phase].dataset)
@@ -119,23 +131,32 @@ def train_model(model, dataloaders, criterion, optimizer, num_epochs=25):
     return model, val_acc_history
 
 
-
 def set_parameter_requires_grad(model, feature_extracting):
+    """
+    This function sets all parameters of model to False, which means we don't fine
+    tune all parameters but only feature extract and compute gradients
+    for newly initialized layer.
+    """
     if feature_extracting:
         for param in model.parameters():
             param.requires_grad = False
 
-def initialize_model(num_classes, feature_extract, use_pretrained=True):
-    # Initialize these variables which will be set in this if statement. Each of these
-    #   variables is model specific.
+
+def initialize_model(model_name, num_classes, feature_extract, use_pretrained=True):
+    """
+    This function initializes these variables which will be set in this
+    if statement. Each of these variables is model specific.
     model_ft = None
     input_size = 0
     """
-    Bagnet33
+    if model_name == "bagnet":
+        model_ft = bagnets.pytorchnet.bagnet33(pretrained=use_pretrained)
+    if model_name == "resnet":
+        model_ft = models.resnet152(pretrained=use_pretrained)
 
-    """
-    model_ft = bagnets.pytorchnet.bagnet33(pretrained=use_pretrained)
     set_parameter_requires_grad(model_ft, feature_extract)
+
+    # Change the last layer
     num_ftrs = model_ft.fc.in_features
     model_ft.fc = nn.Linear(num_ftrs, num_classes)
     input_size = 224
@@ -143,13 +164,15 @@ def initialize_model(num_classes, feature_extract, use_pretrained=True):
     return model_ft, input_size
 
 
-model_ft, input_size = initialize_model(num_classes, feature_extract, use_pretrained=True)
+# Load and finetune model
+model_ft, input_size = initialize_model(model_name, num_classes, feature_extract, use_pretrained=True)
+# Check output layer matches number of output categories of our dataset.
 print(model_ft)
 print(model_ft.fc)
 
 
+# Training and validation dataset
 # Data augmentation and normalization for training
-# Just normalization for validation
 data_transforms = {
     'train': transforms.Compose([
         transforms.RandomResizedCrop(input_size),
@@ -157,6 +180,7 @@ data_transforms = {
         transforms.ToTensor(),
         transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
     ]),
+    # Just normalization for validation
     'val': transforms.Compose([
         transforms.Resize(input_size),
         transforms.CenterCrop(input_size),
@@ -168,23 +192,23 @@ data_transforms = {
 print("Initializing Datasets and Dataloaders...")
 
 # Create training and validation datasets
-image_datasets = {x: datasets.ImageFolder(os.path.join(data_dir, x), data_transforms[x]) for x in ['train', 'val']}
+image_datasets = {x: datasets.ImageFolder(os.path.join(data_dir, x), data_transforms[x])
+for x in ['train', 'val']}
 # Create training and validation dataloaders
-dataloaders_dict = {x: torch.utils.data.DataLoader(image_datasets[x], batch_size=batch_size, shuffle=True, num_workers=4) for x in ['train', 'val']}
+dataloaders_dict = {x: torch.utils.data.DataLoader(image_datasets[x], batch_size=batch_size,
+    shuffle=True, num_workers=4) for x in ['train', 'val']}
 
 # Detect if we have a GPU available
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+print("[Using". device)
 
-
-
+# Create the optimizer to update only desired parameters (only output layer in our case).
 # Send the model to CPU
 model_ft = model_ft.to(device)
 
-# Gather the parameters to be optimized/updated in this run. If we are
-#  finetuning we will be updating all parameters. However, if we are
-#  doing feature extract method, we will only update the parameters
-#  that we have just initialized, i.e. the parameters with requires_grad
-#  is True.
+#  Gather the parameters to be optimized/updated in this run. If we are finetuning we will be
+#  updating all parameters. However, if we are doing feature extract method, we will only update
+#  the parameters that we have just initialized, i.e. the parameters with requires_grad is True.
 params_to_update = model_ft.parameters()
 print("Params to learn:")
 if feature_extract:
@@ -201,100 +225,17 @@ else:
 # Observe that all parameters are being optimized
 optimizer_ft = optim.SGD(params_to_update, lr=0.001, momentum=0.9)
 
-
 # Setup the loss fxn
+print("[Using CrossEntropyLoss...]")
 criterion = nn.CrossEntropyLoss()
 
 # Train and evaluate
-model_ft, hist = train_model(model_ft, dataloaders_dict, criterion, optimizer_ft, num_epochs=num_epochs)
+print("[Training the model begun ....]")
+model_ft, hist = train_model(model_name, model_ft, dataloaders_dict, criterion,
+    optimizer_ft, num_epochs=num_epochs)
 
-# Data augmentation and normalization for training
-# Just normalization for validation
-# data_transforms = {
-#     'train': transforms.Compose([
-#         transforms.RandomResizedCrop(input_size),
-#         transforms.RandomHorizontalFlip(),
-#         transforms.ToTensor(),
-#         transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
-#     ]),
-#     'val': transforms.Compose([
-#         transforms.Resize(input_size),
-#         transforms.CenterCrop(input_size),
-#         transforms.ToTensor(),
-#         transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
-#     ]),
-# }
+print("[Save the best model]")
+torch.save(model_ft.state_dict, model_save_dir)
 
-# print("Initializing Datasets and Dataloaders...")
+# More about evaluation
 
-# # Create training and validation datasets
-# image_datasets = {x: datasets.ImageFolder(os.path.join(data_dir, x), data_transforms[x]) for x in ['train', 'val']}
-# # Create training and validation dataloaders
-# dataloaders_dict = {x: torch.utils.data.DataLoader(image_datasets[x], batch_size=batch_size, shuffle=True, num_workers=4) for x in ['train', 'val']}
-
-# # Detect if we have a GPU available
-# device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-
-
-# # Send the model to CPU
-# model_ft = model_ft.to(device)
-
-# # Gather the parameters to be optimized/updated in this run. If we are
-# #  finetuning we will be updating all parameters. However, if we are
-# #  doing feature extract method, we will only update the parameters
-# #  that we have just initialized, i.e. the parameters with requires_grad
-# #  is True.
-# params_to_update = model_ft.parameters()
-# print("Params to learn:")
-# if feature_extract:
-#     params_to_update = []
-#     for name,param in model_ft.named_parameters():
-#         if param.requires_grad == True:
-#             params_to_update.append(param)
-#             print("\t",name)
-# else:
-#     for name,param in model_ft.named_parameters():
-#         if param.requires_grad == True:
-#             print("\t",name)
-
-# # Observe that all parameters are being optimized
-# optimizer_ft = optim.SGD(params_to_update, lr=0.001, momentum=0.9)
-
-
-# # Setup the loss fxn
-# criterion = nn.CrossEntropyLoss()
-
-# # Train and evaluate
-# model_ft, hist = train_model(model_ft, dataloaders_dict, criterion, optimizer_ft, num_epochs=num_epochs)
-# # # load an imagenet sample
-# # # we use foolbox for simplicity here
-# from foolbox.utils import samples
-# original, label = samples(dataset='imagenet', index=1, batchsize=1, shape=(224, 224),
-#     data_format='channels_first')
-
-# # preprocess sample image
-# sample = original / 255.
-# sample -= np.array([0.485, 0.456, 0.406])[:, None, None]
-# sample /= np.array([0.229, 0.224, 0.225])[:, None, None]
-
-# pytorch_model(sample, label)
-# generate heatmap
-# heatmap = generate_heatmap_pytorch(pytorch_model, sample, label, 33)
-
-# # plot heatmap
-# fig = plt.figure(figsize=(8, 4))
-
-# original_image = original[0].transpose([1,2,0])
-
-# ax = plt.subplot(121)
-# ax.set_title('original')
-# plt.imshow(original_image / 255.)
-# plt.axis('off')
-
-# ax = plt.subplot(122)
-# ax.set_title('heatmap')
-# plot_heatmap(heatmap, original_image, ax, dilation=0.5, percentile=99, alpha=.25)
-# plt.axis('off')
-
-# plt.show()
->>>>>>> Stashed changes
