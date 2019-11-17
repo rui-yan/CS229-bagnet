@@ -28,9 +28,6 @@ data_dir = "/Users/ruiyan/Documents/Github/CS229-final-project/hymenoptera_data"
 # Models to choose from [resnet, bagnet]
 model_name = "bagnet"
 
-# Save the best model to this directory
-model_save_dir = "/Users/ruiyan/Documents/Github/CS229-final-project/" + model_name + ".pth"
-
 # Number of classes in the dataset
 num_classes = 2
 
