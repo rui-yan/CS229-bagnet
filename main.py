@@ -23,27 +23,29 @@ print("Torchvision Version: ",torchvision.__version__)
 
 # Top level data directory. Here we assume the format of the directory conforms
 #   to the ImageFolder structure
+#TODO: CHANGE TO OUR DATA
 data_dir = "/Users/ruiyan/Documents/Github/CS229-final-project/hymenoptera_data"
 
 # Models to choose from [resnet, bagnet]
 model_name = "bagnet"
 
 # Number of classes in the dataset
+#TODO: CHANGE AFTER GETTING DATASET
 num_classes = 2
 
-# Batch size for training (change depending on how much memory you have)
-# batch_size = 50
-batch_size = 8
+# Batch size for training (standardized to BagNet baseline)
+batch_size = 256
 
-# Number of epochs to train for
-# num_epochs = 15
-num_epochs = 5
-# num_epochs = 50 # we should do this on google cloud
+# Number of epochs to train for (doesn't matter too much... should technically stop running after no more improvement, could be different for ResNet and BagNet)
+#TODO: CHANGE TO SOMETHING LARGER
+num_epochs = 2
 
 # Flag for feature extracting. When False, we finetune the whole model,
 #   when True we only update the reshaped layer params
 feature_extract = True
 
+
+#Function to train BagNet
 def train_model(model, dataloaders, criterion, optimizer, num_epochs=25):
 
     """
@@ -127,7 +129,7 @@ def train_model(model, dataloaders, criterion, optimizer, num_epochs=25):
 
     return model, val_acc_history
 
-
+#Sets model parameters so that we don't fine tune all parameters but only feature extract and compute gradients for newly initialized layer
 def set_parameter_requires_grad(model, feature_extracting):
     """
     This function sets all parameters of model to False, which means we don't fine
@@ -143,13 +145,14 @@ def initialize_model(model_name, num_classes, feature_extract, use_pretrained=Tr
     """
     This function initializes these variables which will be set in this
     if statement. Each of these variables is model specific.
+    """
     model_ft = None
     input_size = 0
-    """
+    
     if model_name == "bagnet":
         model_ft = bagnets.pytorchnet.bagnet33(pretrained=use_pretrained)
     if model_name == "resnet":
-        model_ft = models.resnet152(pretrained=use_pretrained)
+        model_ft = models.resnet50(pretrained=use_pretrained)
 
     set_parameter_requires_grad(model_ft, feature_extract)
 
@@ -161,7 +164,7 @@ def initialize_model(model_name, num_classes, feature_extract, use_pretrained=Tr
     return model_ft, input_size
 
 
-# Load and finetune model
+# Load and modify model
 model_ft, input_size = initialize_model(model_name, num_classes, feature_extract, use_pretrained=True)
 # Check output layer matches number of output categories of our dataset.
 print(model_ft)
@@ -233,6 +236,19 @@ model_ft, hist = train_model(model_ft, dataloaders_dict, criterion,
 
 print("[Save the best model]")
 torch.save(model_ft.state_dict, model_save_dir)
+
+#Run on test data
+
+#Got this code below from here: https://towardsdatascience.com/how-to-train-an-image-classifier-in-pytorch-and-use-it-to-perform-basic-inference-on-single-images-99465a1e9bf5
+#Hasn't been run yet, not sure if works
+#def predict_image(image):
+#    image_tensor = test_transforms(image).float()
+#    image_tensor = image_tensor.unsqueeze_(0)
+#    input = Variable(image_tensor)
+#    input = input.to(device)
+#    output = model(input)
+#    index = output.data.cpu().numpy().argmax()
+#    return index
 
 # More about evaluation
 
