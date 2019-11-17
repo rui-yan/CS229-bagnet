@@ -20,14 +20,18 @@ print("Torchvision Version: ",torchvision.__version__)
 
 # Tutorial for reference: https://pytorch.org/tutorials/beginner/finetuning_torchvision_models_tutorial.html
 # https://www.guru99.com/pytorch-tutorial.html
+# https://www.learnopencv.com/pytorch-for-beginners-image-classification-using-pre-trained-models/
 
 # Top level data directory. Here we assume the format of the directory conforms
 #   to the ImageFolder structure
-#TODO: CHANGE TO OUR DATA
-data_dir = "/Users/ruiyan/Documents/Github/CS229-final-project/hymenoptera_data"
+# TODO: CHANGE TO OUR DATA
+data_dir = '/Users/ruiyan/Documents/Github/CS229-final-project/hymenoptera_data'
 
 # Models to choose from [resnet, bagnet]
-model_name = "bagnet"
+# model_name = 'bagnet'
+
+# Directory of our saved model
+# model_save_dir = './saved_model/saved_' + model_name + '.pth'
 
 # Number of classes in the dataset
 #TODO: CHANGE AFTER GETTING DATASET
@@ -44,8 +48,8 @@ num_epochs = 2
 #   when True we only update the reshaped layer params
 feature_extract = True
 
-
-#Function to train BagNet
+##------------------------------------- Model -------------------------------------##
+# Some useful functions for model training
 def train_model(model, dataloaders, criterion, optimizer, num_epochs=25):
 
     """
@@ -76,8 +80,7 @@ def train_model(model, dataloaders, criterion, optimizer, num_epochs=25):
 
             # Iterate over data.
             for inputs, labels in dataloaders[phase]:
-                inputs = inputs.to(device)
-                labels = labels.to(device)
+                inputs, labels = inputs.to(device), labels.to(device)
 
                 # zero the parameter gradients
                 optimizer.zero_grad()
@@ -95,11 +98,6 @@ def train_model(model, dataloaders, criterion, optimizer, num_epochs=25):
                     if phase == 'train':
                         loss.backward()
                         optimizer.step()
-
-                # TEST
-                if phase == 'val':
-                    _. pred = torch.max(outputs, 1)
-                    print('truth: ', labels, ', predicted: ', pred)
 
                 # statistics
                 running_loss += loss.item() * inputs.size(0)
@@ -129,7 +127,8 @@ def train_model(model, dataloaders, criterion, optimizer, num_epochs=25):
 
     return model, val_acc_history
 
-#Sets model parameters so that we don't fine tune all parameters but only feature extract and compute gradients for newly initialized layer
+# Sets model parameters so that we don't fine tune all parameters but only feature extract and
+# compute gradients for newly initialized layer
 def set_parameter_requires_grad(model, feature_extracting):
     """
     This function sets all parameters of model to False, which means we don't fine
@@ -147,8 +146,7 @@ def initialize_model(model_name, num_classes, feature_extract, use_pretrained=Tr
     if statement. Each of these variables is model specific.
     """
     model_ft = None
-    input_size = 0
-    
+
     if model_name == "bagnet":
         model_ft = bagnets.pytorchnet.bagnet33(pretrained=use_pretrained)
     if model_name == "resnet":
@@ -159,31 +157,29 @@ def initialize_model(model_name, num_classes, feature_extract, use_pretrained=Tr
     # Change the last layer
     num_ftrs = model_ft.fc.in_features
     model_ft.fc = nn.Linear(num_ftrs, num_classes)
-    input_size = 224
 
-    return model_ft, input_size
+    return model_ft
 
+# Detect if we have a GPU available
+device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+print("[Using", device , "...]")
 
-# Load and modify model
-model_ft, input_size = initialize_model(model_name, num_classes, feature_extract, use_pretrained=True)
-# Check output layer matches number of output categories of our dataset.
-print(model_ft)
-print(model_ft.fc)
+##---------------------------- Training and validation dataset------------------------##
+print('==> [Preparing data ....]')
 
-
-# Training and validation dataset
 # Data augmentation and normalization for training
 data_transforms = {
     'train': transforms.Compose([
-        transforms.RandomResizedCrop(input_size),
-        transforms.RandomHorizontalFlip(),
+        transforms.RandomResizedCrop(256),  # resize the image to 256*256 pixels
+        transforms.CenterCrop(224),  # crop the image to 224*224 pixels about the center
+        transforms.RandomHorizontalFlip(),  # convert the image to PyTorch Tensor data type
         transforms.ToTensor(),
         transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
     ]),
     # Just normalization for validation
     'val': transforms.Compose([
-        transforms.Resize(input_size),
-        transforms.CenterCrop(input_size),
+        transforms.Resize(256),
+        transforms.CenterCrop(256),
         transforms.ToTensor(),
         transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
     ]),
@@ -198,50 +194,133 @@ for x in ['train', 'val']}
 dataloaders_dict = {x: torch.utils.data.DataLoader(image_datasets[x], batch_size=batch_size,
     shuffle=True, num_workers=4) for x in ['train', 'val']}
 
-# Detect if we have a GPU available
-device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-print("[Using", device , "...]")
+##--------------------- Compare resnet and bagnet --------------------##
 
+###########  RESNET-50 ###########
+print('==> Resnet-50 model')
+
+##---- Load and modify model ----##
+model_name = 'resnet'
+model_ft_resnet = initialize_model(model_name, num_classes, feature_extract, use_pretrained=True)
+
+# Check output layer matches number of output categories of our dataset.
+print(model_ft_resnet)
+print(model_ft_resnet.fc)
+
+##---- Create the optimizer ----##
 # Create the optimizer to update only desired parameters (only output layer in our case).
 # Send the model to CPU
-model_ft = model_ft.to(device)
+model_ft_resnet = model_ft_resnet.to(device)
 
 #  Gather the parameters to be optimized/updated in this run. If we are finetuning we will be
 #  updating all parameters. However, if we are doing feature extract method, we will only update
 #  the parameters that we have just initialized, i.e. the parameters with requires_grad is True.
-params_to_update = model_ft.parameters()
+params_to_update = model_ft_resnet.parameters()
 print("Params to learn:")
 if feature_extract:
     params_to_update = []
-    for name,param in model_ft.named_parameters():
+    for name, param in model_ft_resnet.named_parameters():
         if param.requires_grad == True:
             params_to_update.append(param)
             print("\t",name)
 else:
-    for name,param in model_ft.named_parameters():
+    for name,param in model_ft_resnet.named_parameters():
         if param.requires_grad == True:
             print("\t",name)
 
 # Observe that all parameters are being optimized
-optimizer_ft = optim.SGD(params_to_update, lr=0.001, momentum=0.9)
+optimizer_ft_resnet = optim.SGD(params_to_update, lr=0.001, momentum=0.9)
 
+##---- Train and evaluate -----#
 # Setup the loss fxn
-print("[Using CrossEntropyLoss...]")
+print("[Using CrossEntropyLoss ...]")
 criterion = nn.CrossEntropyLoss()
 
-# Train and evaluate
-print("[Training the model begun ....]")
-model_ft, hist = train_model(model_ft, dataloaders_dict, criterion,
-    optimizer_ft, num_epochs=num_epochs)
+print("[Training the model begun ...]")
+model_ft_resnet, rhist = train_model(model_ft_resnet, dataloaders_dict, criterion,
+    optimizer_ft_resnet, num_epochs=num_epochs)
 
-print("[Save the best model]")
-torch.save(model_ft.state_dict, model_save_dir)
+print("[Saving the best model ...]")
+if not os.path.isdir('saved_model'):
+    os.makedir('saved_model')
 
-#Run on test data
+torch.save(optimizer_ft_resnet.state_dict, './saved_model/saved_resnet.pth')
 
-#Got this code below from here: https://towardsdatascience.com/how-to-train-an-image-classifier-in-pytorch-and-use-it-to-perform-basic-inference-on-single-images-99465a1e9bf5
-#Hasn't been run yet, not sure if works
-#def predict_image(image):
+
+
+########### BAGNET ###########
+print('==> Bagnet model')
+
+##---- Load and modify model ----##
+model_name = 'bagnet'
+model_ft_bagnet = initialize_model(model_name, num_classes, feature_extract, use_pretrained=True)
+
+# Check output layer matches number of output categories of our dataset.
+print(model_ft_bagnet)
+print(model_ft_bagnet.fc)
+
+##---- Create the optimizer ----##
+# Create the optimizer to update only desired parameters (only output layer in our case).
+# Send the model to CPU
+model_ft_bagnet = model_ft_bagnet.to(device)
+
+#  Gather the parameters to be optimized/updated in this run. If we are finetuning we will be
+#  updating all parameters. However, if we are doing feature extract method, we will only update
+#  the parameters that we have just initialized, i.e. the parameters with requires_grad is True.
+params_to_update = model_ft_bagnet.parameters()
+print("Params to learn:")
+if feature_extract:
+    params_to_update = []
+    for name, param in model_ft_bagnet.named_parameters():
+        if param.requires_grad == True:
+            params_to_update.append(param)
+            print("\t",name)
+else:
+    for name, param in model_ft_bagnet.named_parameters():
+        if param.requires_grad == True:
+            print("\t",name)
+
+# Observe that all parameters are being optimized
+optimizer_ft_bagnet = optim.SGD(params_to_update, lr=0.001, momentum=0.9)
+
+##---- Train and evaluate -----#
+# Setup the loss fxn
+print("[Using CrossEntropyLoss ...]")
+criterion = nn.CrossEntropyLoss()
+
+print("[Training the model begun ...]")
+model_ft_bagnet, bhist = train_model(model_ft_bagnet, dataloaders_dict, criterion,
+    optimizer_ft_bagnet, num_epochs=num_epochs)
+
+print("[Saving the best model ...]")
+if not os.path.isdir('saved_model'):
+    os.makedir('saved_model')
+
+torch.save(optimizer_ft_bagnet.state_dict, './saved_model/saved_bagnet.pth')
+
+
+## Plot the training curves of validation accuracy vs. number of training epochs for the resnet vs. bagnet
+rhist = []
+bhist = []
+
+rhist = [h.cpu().numpy() for h in rhist]
+bhist = [h.cpu().numpy() for h in bhist]
+
+plt.title("Validation Accuracy vs. Number of Training Epochs")
+plt.xlabel("Training Epochs")
+plt.ylabel("Validation Accuracy")
+plt.plot(range(1,num_epochs+1),rhist,label="ResNet50")
+plt.plot(range(1,num_epochs+1),bhist,label="BagNet")
+plt.ylim((0,1.))
+plt.xticks(np.arange(1, num_epochs+1, 1.0))
+plt.legend()
+plt.show()
+
+
+# Got this code below from here: https://towardsdatascience.com/how-to-train-an-image-classifier-in-pytorch-and-use-it-to-perform-basic-inference-on-single-images-99465a1e9bf5
+# Hasn't been run yet, not sure if works
+
+# def predict_image(image):
 #    image_tensor = test_transforms(image).float()
 #    image_tensor = image_tensor.unsqueeze_(0)
 #    input = Variable(image_tensor)
