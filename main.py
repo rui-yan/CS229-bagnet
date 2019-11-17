@@ -196,7 +196,7 @@ validationset = torchvision.datasets.CIFAR100(root='./data', train=False, downlo
     transform=data_transforms['val'])
 validationloader = torch.utils.data.DataLoader(validationset, batch_size=100, shuffle=False, num_workers=4)
 
-dataloaders_dict = {'train': trainloader, 'val':testloader}
+dataloaders_dict = {'train': trainloader, 'val': validationloader}
 
 # Create training and validation datasets
 # image_datasets = {x: datasets.ImageFolder(os.path.join(data_dir, x), data_transforms[x])
@@ -320,8 +320,8 @@ bhist = [h.cpu().numpy() for h in bhist]
 plt.title("Validation Accuracy vs. Number of Training Epochs")
 plt.xlabel("Training Epochs")
 plt.ylabel("Validation Accuracy")
-plt.plot(range(1,num_epochs+1),rhist,label="ResNet50")
-plt.plot(range(1,num_epochs+1),bhist,label="BagNet")
+plt.plot(range(1, num_epochs+1),rhist,label="ResNet50")
+plt.plot(range(1, num_epochs+1),bhist,label="BagNet")
 plt.ylim((0,1.))
 plt.xticks(np.arange(1, num_epochs+1, 1.0))
 plt.legend()
