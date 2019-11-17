@@ -188,11 +188,20 @@ data_transforms = {
 print("Initializing Datasets and Dataloaders...")
 
 # Create training and validation datasets
-image_datasets = {x: datasets.ImageFolder(os.path.join(data_dir, x), data_transforms[x])
-for x in ['train', 'val']}
-# Create training and validation dataloaders
-dataloaders_dict = {x: torch.utils.data.DataLoader(image_datasets[x], batch_size=batch_size,
-    shuffle=True, num_workers=4) for x in ['train', 'val']}
+trainset = torchvision.datasets.CIFAR10(root='./data', train=True, download=True, transform=data_transforms['train'])
+trainloader = torch.utils.data.DataLoader(trainset, batch_size=128, shuffle=True, num_workers=4)
+
+testset = torchvision.datasets.CIFAR10(root='./data', train=False, download=True, transform=data_transforms['val'])
+testloader = torch.utils.data.DataLoader(testset, batch_size=100, shuffle=False, num_workers=4)
+
+dataloaders_dict = {train: trainloader, test:testloader}
+
+# Create training and validation datasets
+# image_datasets = {x: datasets.ImageFolder(os.path.join(data_dir, x), data_transforms[x])
+# for x in ['train', 'val']}
+# # Create training and validation dataloaders
+# dataloaders_dict = {x: torch.utils.data.DataLoader(image_datasets[x], batch_size=batch_size,
+#     shuffle=True, num_workers=4) for x in ['train', 'val']}
 
 ##--------------------- Compare resnet and bagnet --------------------##
 
