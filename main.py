@@ -188,13 +188,15 @@ data_transforms = {
 print("Initializing Datasets and Dataloaders...")
 
 # Create training and validation datasets
-trainset = torchvision.datasets.CIFAR10(root='./data', train=True, download=True, transform=data_transforms['train'])
+trainset = torchvision.datasets.CIFAR100(root='./data', train=True, download=True,
+    transform=data_transforms['train'])
 trainloader = torch.utils.data.DataLoader(trainset, batch_size=128, shuffle=True, num_workers=4)
 
-testset = torchvision.datasets.CIFAR10(root='./data', train=False, download=True, transform=data_transforms['val'])
-testloader = torch.utils.data.DataLoader(testset, batch_size=100, shuffle=False, num_workers=4)
+validationset = torchvision.datasets.CIFAR100(root='./data', train=False, download=True,
+    transform=data_transforms['val'])
+validationloader = torch.utils.data.DataLoader(validationset, batch_size=100, shuffle=False, num_workers=4)
 
-dataloaders_dict = {train: trainloader, test:testloader}
+dataloaders_dict = {'train': trainloader, 'val':testloader}
 
 # Create training and validation datasets
 # image_datasets = {x: datasets.ImageFolder(os.path.join(data_dir, x), data_transforms[x])
