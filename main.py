@@ -25,7 +25,7 @@ print("Torchvision Version: ",torchvision.__version__)
 # Top level data directory. Here we assume the format of the directory conforms
 #   to the ImageFolder structure
 # TODO: CHANGE TO OUR DATA
-data_dir = '/Users/ruiyan/Documents/Github/CS229-final-project/hymenoptera_data'
+data_dir = '~/Documents/School/Grad/Q1/CS229/FinalProject/CS229-final-project/flowers'
 
 # Models to choose from [resnet, bagnet]
 # model_name = 'bagnet'
@@ -35,14 +35,14 @@ data_dir = '/Users/ruiyan/Documents/Github/CS229-final-project/hymenoptera_data'
 
 # Number of classes in the dataset
 #TODO: CHANGE AFTER GETTING DATASET
-num_classes = 2
+num_classes = 5
 
 # Batch size for training (standardized to BagNet baseline)
 batch_size = 256
 
 # Number of epochs to train for (doesn't matter too much... should technically stop running after no more improvement, could be different for ResNet and BagNet)
 #TODO: CHANGE TO SOMETHING LARGER
-num_epochs = 2
+num_epochs = 1
 
 # Flag for feature extracting. When False, we finetune the whole model,
 #   when True we only update the reshaped layer params
