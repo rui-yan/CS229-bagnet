@@ -171,7 +171,7 @@ print('==> [Preparing data ....]')
 data_transforms = {
     'train': transforms.Compose([
         transforms.RandomResizedCrop(256),  # resize the image to 256*256 pixels
-        transforms.CenterCrop(224),  # crop the image to 224*224 pixels about the center
+        transforms.CenterCrop(256),  # crop the image to 256*256 pixels about the center
         transforms.RandomHorizontalFlip(),  # convert the image to PyTorch Tensor data type
         transforms.ToTensor(),
         transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
