@@ -171,7 +171,7 @@ print('==> [Preparing data ....]')
 data_transforms = {
     'train': transforms.Compose([
         transforms.RandomResizedCrop(256),  # resize the image to 256*256 pixels
-        transforms.CenterCrop(224),  # crop the image to 224*224 pixels about the center
+        transforms.CenterCrop(256),  # crop the image to 256*256 pixels about the center
         transforms.RandomHorizontalFlip(),  # convert the image to PyTorch Tensor data type
         transforms.ToTensor(),
         transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
@@ -188,22 +188,21 @@ data_transforms = {
 print("Initializing Datasets and Dataloaders...")
 
 # Create training and validation datasets
-trainset = torchvision.datasets.CIFAR100(root='./data', train=True, download=True,
-    transform=data_transforms['train'])
-trainloader = torch.utils.data.DataLoader(trainset, batch_size=128, shuffle=True, num_workers=4)
+#trainset = torchvision.datasets.CIFAR100(root='./data', train=True, download=True,
+#    transform=data_transforms['train'])
+#trainloader = torch.utils.data.DataLoader(trainset, batch_size=128, shuffle=True, num_workers=4)
 
-validationset = torchvision.datasets.CIFAR100(root='./data', train=False, download=True,
-    transform=data_transforms['val'])
-validationloader = torch.utils.data.DataLoader(validationset, batch_size=100, shuffle=False, num_workers=4)
+#validationset = torchvision.datasets.CIFAR100(root='./data', train=False, download=True,
+#    transform=data_transforms['val'])
+#validationloader = torch.utils.data.DataLoader(validationset, batch_size=100, shuffle=False, num_workers=4)
 
-dataloaders_dict = {'train': trainloader, 'val': validationloader}
+#dataloaders_dict = {'train': trainloader, 'val': validationloader}
 
 # Create training and validation datasets
-# image_datasets = {x: datasets.ImageFolder(os.path.join(data_dir, x), data_transforms[x])
-# for x in ['train', 'val']}
-# # Create training and validation dataloaders
-# dataloaders_dict = {x: torch.utils.data.DataLoader(image_datasets[x], batch_size=batch_size,
-#     shuffle=True, num_workers=4) for x in ['train', 'val']}
+ image_datasets = {x: datasets.ImageFolder(os.path.join(data_dir, x), data_transforms[x])
+ for x in ['train', 'val']}
+# Create training and validation dataloaders
+ dataloaders_dict = {x: torch.utils.data.DataLoader(image_datasets[x], batch_size=batch_size, shuffle=True, num_workers=4) for x in ['train', 'val']}
 
 ##--------------------- Compare resnet and bagnet --------------------##
 
