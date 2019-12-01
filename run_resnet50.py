@@ -226,6 +226,7 @@ model_ft_resnet, rhist = train_model(model_ft_resnet, dataloaders_dict, criterio
     optimizer_ft_resnet, num_epochs=num_epochs)
 
 #Save trained model parameters
+#Adapted from: https://pytorch.org/tutorials/beginner/saving_loading_models.html
 torch.save({'model_resnet_state_dict': model_ft_resnet.state_dict(), 
             'optimizer_resnet_state_dict': optimizer_ft_resnet.state_dict(), 
             'rhist' : rhist
