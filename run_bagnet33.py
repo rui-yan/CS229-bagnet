@@ -23,7 +23,6 @@ data_dir = './CS229-final-project/'
 
 model_name = "bagnet33"
 
-
 # Number of classes in the dataset
 num_classes = 5
 
