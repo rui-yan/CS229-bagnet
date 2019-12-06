@@ -74,9 +74,9 @@ class BagNet(nn.Module):
         self.layer1 = self._make_layer(block, 64, layers[0], stride=strides[0], kernel3=kernel3[0], prefix='layer1')
         self.layer2 = self._make_layer(block, 128, layers[1], stride=strides[1], kernel3=kernel3[1], prefix='layer2')
         self.layer3 = self._make_layer(block, 256, layers[2], stride=strides[2], kernel3=kernel3[2], prefix='layer3')
-        self.layer4 = self._make_layer(block, 512, layers[3], stride=strides[3], kernel3=kernel3[3], prefix='layer4')
+        self.layer4 = self._make_layer(block, 512, layers[3], stride=strides[3], kernel3=kernel3[3], prefix='layer4') #In this code, Bottleneck is used as block, so block.expansion = 4
         self.avgpool = nn.AvgPool2d(1, stride=1)
-        self.fc = nn.Linear(512 * block.expansion, num_classes)
+        self.fc = nn.Linear(512 * block.expansion, num_classes) #The fc layer is a linear layer with input dimensions 512*4, num_classes (5 in our case)
         self.avg_pool = avg_pool
         self.block = block
 
