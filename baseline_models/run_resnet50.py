@@ -1,3 +1,12 @@
+'''
+THIS SCRIPT TRAINS A RESNET-50 BASELINE CNN MODEL ON THE FLOWERS DATASET AND PLOTS THE LEARNING CURVES.
+USES A RESNET-50 PRE-TRAINED ON IMAGENET.
+
+CREDITS: Much of this code and some comments were adapted from the tutorial at:
+https://pytorch.org/tutorials/beginner/finetuning_torchvision_models_tutorial.html
+with modifications to fit our dataset and standardization to be comparable with BagNet-33
+'''
+
 from __future__ import print_function, division
 import numpy as np
 import pandas as pd

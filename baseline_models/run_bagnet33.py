@@ -1,3 +1,13 @@
+'''
+THIS SCRIPT TRAINS A BAGNET-33 BASELINE CNN MODEL ON THE FLOWERS DATASET AND PLOTS THE LEARNING CURVES.
+USES A BAGNET-33 PRE-TRAINED ON IMAGENET.
+
+CREDITS: Much of this code and some comments were adapted from the tutorial at:
+https://pytorch.org/tutorials/beginner/finetuning_torchvision_models_tutorial.html
+with lots of aid and snippets from the BagNet github source code:
+https://github.com/wielandbrendel/bag-of-local-features-models/blob/master/bagnets/pytorchnet.py
+'''
+
 import numpy as np
 import pandas as pd
 import torch
