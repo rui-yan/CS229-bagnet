@@ -198,9 +198,9 @@ data_transforms = {
 print("Initializing Datasets and Dataloaders...")
 
 # Create training and validation datasets
-train_data = torchvision.datasets.ImageFolder("./flowers/train/", data_transforms["train"])
-val_data = torchvision.datasets.ImageFolder("./flowers/val/", data_transforms["val"])
-test_data = torchvision.datasets.ImageFolder("./flowers/test/", data_transforms["test"])
+train_data = torchvision.datasets.ImageFolder("./flowers_tvtsplit/train/", data_transforms["train"])
+val_data = torchvision.datasets.ImageFolder("./flowers_tvtsplit/val/", data_transforms["val"])
+test_data = torchvision.datasets.ImageFolder("./flowers_tvtsplit/test/", data_transforms["test"])
 
 # Create training and validation dataloaders
 dataloaders_dict = {"train": torch.utils.data.DataLoader(train_data, batch_size=batch_size,

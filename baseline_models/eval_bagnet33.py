@@ -30,14 +30,14 @@ import torchvision.transforms as transforms
 import torch.optim as optim
 from torch.optim import lr_scheduler
 import torch.backends.cudnn as cudnn
-import time 
+import time
 import tqdm
 import random
 from PIL import Image
 train_on_gpu = True
 from torch.utils.data.sampler import SubsetRandomSampler
 from torch.optim.lr_scheduler import StepLR, ReduceLROnPlateau, CosineAnnealingLR
-try: 
+try:
     import torchbearer
 except:
     !pip install torchbearer
@@ -92,7 +92,7 @@ data_transforms = {
     "train": transforms.Compose([
         transforms.RandomResizedCrop(256),  # resize the image to 256*256 pixels
         transforms.CenterCrop(256),  # crop the image to 256*256 pixels about the center
-        transforms.RandomHorizontalFlip(),  
+        transforms.RandomHorizontalFlip(),
         transforms.ToTensor(), # convert the image to PyTorch Tensor data type
         transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
     ]),
@@ -203,6 +203,7 @@ images, labels = dataiter.next()
 
 class_correct = list(0. for i in range(5))
 class_total = list(0. for i in range(5))
+
 with torch.no_grad():
     for data in test_loader:
         images, labels = data
@@ -211,7 +212,7 @@ with torch.no_grad():
         outputs = model_ft(images)
         _, predicted = torch.max(outputs, 1)
         c = (predicted == labels).squeeze()
-        if c.size()[0] == 4: 
+        if c.size()[0] == 4:
             for i in range(4):
                 label = labels[i]
                 class_correct[label] += c[i].item()
