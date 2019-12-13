@@ -1,3 +1,4 @@
+from __future__ import print_function, division
 import numpy as np
 import pandas as pd
 import torch
@@ -10,16 +11,14 @@ import time
 import os
 import copy
 import matplotlib.pyplot as plt
-import bagnets.pytorchnet
 
 print("PyTorch Version: ",torch.__version__)
 print("Torchvision Version: ",torchvision.__version__)
 
-# Top level data directory. Here we assume the format of the directory conforms
-#   to the ImageFolder structure
-data_dir = "./CS229-final-project/"
+# Top level data directory
+data_dir = './CS229-final-project/'
 
-model_name = "bagnet33"
+model_name = "resnet50"
 
 # Number of classes in  the dataset
 num_classes = 5
@@ -27,15 +26,14 @@ num_classes = 5
 # Batch size for training (standardized to BagNet baseline)
 batch_size = 32
 
-# Number of epochs to train for (doesn't matter too much... should technically stop running after no more improvement, could be different for ResNet and BagNet)
-#TODO: CHANGE TO SOMETHING LARGER
+# Number of epochs to train for
 num_epochs = 50
 
-# Flag for feature extracting. When False, we finetune the whole model,
-#   when True we only update the reshaped layer params
+# Flag for feature extracting. When False, we finetune the whole model, when True we only update the reshaped layer params
 feature_extract = True
 
-##------------------------------------- Model -------------------------------------##
+
+##------------------------------------- Model Functions -------------------------------------##
 # Some useful functions for model training
 def train_model(model, dataloaders, criterion, optimizer, num_epochs=25):
     """
@@ -121,6 +119,7 @@ def train_model(model, dataloaders, criterion, optimizer, num_epochs=25):
     return model, train_acc_history, train_loss_history, val_acc_history, val_loss_history
 
 
+# Sets model parameters so that we don't fine tune all parameters but only feature extract and
 # compute gradients for newly initialized layer
 def set_parameter_requires_grad(model, feature_extracting):
     """
@@ -140,12 +139,8 @@ def initialize_model(model_name, num_classes, feature_extract, use_pretrained=Tr
     """
     model_ft = None
 
-    if model_name == "bagnet9":
-        model_ft = bagnets.pytorchnet.bagnet9(pretrained=use_pretrained)
-    if model_name == "bagnet17":
-        model_ft = bagnets.pytorchnet.bagnet17(pretrained=use_pretrained)
-    if model_name == "bagnet33":
-        model_ft = bagnets.pytorchnet.bagnet33(pretrained=use_pretrained)
+    if model_name == "resnet50":
+        model_ft = models.resnet50(pretrained=use_pretrained)
 
     set_parameter_requires_grad(model_ft, feature_extract)
 
@@ -203,8 +198,11 @@ dataloaders_dict = {"train": torch.utils.data.DataLoader(train_data, batch_size=
                     shuffle=False, num_workers=2)}
 
 
+##---------------------------- ResNet-50 Model -------------------------------##
+
+print('==> Resnet-50 model')
+
 ##---- Load and modify model ----##
-print('==> Bagnet-33 model')
 model_ft = initialize_model(model_name, num_classes, feature_extract, use_pretrained=True)
 
 # Check output layer matches number of output categories of our dataset.
@@ -233,24 +231,24 @@ else:
 
 optimizer_ft = optim.SGD(params_to_update, lr=0.001, momentum=0.9)
 
-##---- Train and evaluate -----#
+#---- Train model -----#
 # Setup the loss fxn
 print("[Using CrossEntropyLoss ...]")
 criterion = nn.CrossEntropyLoss()
 
+# Train the model
 print("[Training the model begun ...]")
 model_ft, train_acc, train_loss, val_acc, val_loss = train_model(model_ft, dataloaders_dict, criterion,
     optimizer_ft, num_epochs=num_epochs)
 
-
 ##----- Save model ------##
 print("==> Saving model...")
-torch.save({'model_bagnet33_state_dict': model_ft.state_dict(),
-            'optimizer_bagnet33_state_dict': optimizer_ft.state_dict()
-            }, './bagnet33/bagnet33_baseline_model.pth')
+torch.save({'model_resnet50_state_dict': model_ft.state_dict(),
+            'optimizer_resnet50_state_dict': optimizer_ft.state_dict()
+            }, './resnet50/resnet50_baseline_model.pth')
 
 print("==> Saving loss and accuracy data...")
-out=open('./bagnet33/bagnet33_loss_acc_data.txt', 'w')
+out=open('./resnet50/resnet50_loss_acc_data.txt', 'w')
 out.write(str(train_acc) + "\n")
 out.write(str(train_loss) + "\n")
 out.write(str(val_acc) + "\n")
@@ -259,7 +257,7 @@ out.close()
 
 
 ##------- Plot acc_loss ------##
-# Plot loss and accuracy for bagnet33
+# Plot loss and accuracy for resnet50
 fig, ax = plt.subplots(nrows=1,ncols=2,figsize=(9,4))
 ax[0].plot(train_loss, label= "Train loss")
 ax[0].plot(val_loss, label= "Val loss")
@@ -272,13 +270,13 @@ ax[1].set_xlabel("epochs")
 ax[1].set_ylabel("accuracy")
 ax[1].legend()
 
-plt.savefig("./bagnet33/bagnet33_loss_acc_plot.png")
+plt.savefig("./resnet50/resnet50_loss_acc_plot.png")
 
 
 ##------- Test model ------##
 print("==> Testing model...")
-checkpoint = torch.load('./bagnet33/bagnet33_baseline_model.pth')
-model_ft.load_state_dict(checkpoint['model_bagnet33_state_dict'])
+checkpoint = torch.load('./resnet50/resnet50_baseline_model.pth')
+model_ft.load_state_dict(checkpoint['model_resnet50_state_dict'])
 
 def test(model, dataloaders, criterion):
     # monitor test loss and accuracy
@@ -307,7 +305,7 @@ def test(model, dataloaders, criterion):
         correct += np.sum(np.squeeze(pred.eq(target.data.view_as(pred))).cpu().numpy())
         total += data.size(0)
 
-        print('\nTest Loss: {:.6f}'.format(test_loss))
+        print('\nTest Loss: {:.6f}\n'.format(test_loss))
         print('Test Accuracy: %2d%% (%2d/%2d)\n' % (100. * correct / total, correct, total))
 
 test(model_ft, dataloaders_dict, criterion)
