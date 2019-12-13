@@ -29,14 +29,14 @@ import torchvision.transforms as transforms
 import torch.optim as optim
 from torch.optim import lr_scheduler
 import torch.backends.cudnn as cudnn
-import time 
+import time
 import tqdm
 import random
 from PIL import Image
 train_on_gpu = True
 from torch.utils.data.sampler import SubsetRandomSampler
 from torch.optim.lr_scheduler import StepLR, ReduceLROnPlateau, CosineAnnealingLR
-try: 
+try:
     import torchbearer
 except:
     !pip install torchbearer
@@ -59,7 +59,7 @@ def set_parameter_requires_grad(model, feature_extracting):
     if feature_extracting:
         for param in model.parameters():
             param.requires_grad = False
-            
+
 def initialize_model(model_name, num_classes, feature_extract, use_pretrained=True):
     """
     This function initializes these variables which will be set in this
@@ -85,23 +85,22 @@ def initialize_model(model_name, num_classes, feature_extract, use_pretrained=Tr
 
 data_transforms = {
     "train": transforms.Compose([
-        transforms.RandomResizedCrop(256),  # resize the image to 256*256 pixels
-        transforms.CenterCrop(256),  # crop the image to 256*256 pixels about the center
-        transforms.RandomHorizontalFlip(),  
-        transforms.ToTensor(), # convert the image to PyTorch Tensor data type
-        transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
-    ]),
-    "test": transforms.Compose([
-        transforms.RandomResizedCrop(256),
-        transforms.CenterCrop(256),
-        transforms.RandomHorizontalFlip(),
+        transforms.RandomResizedCrop(224),  # resize the image to 224*224 pixels
+        transforms.CenterCrop(224),  # crop the image to 224*224 pixels about the center
+        transforms.RandomHorizontalFlip(),  # convert the image to PyTorch Tensor data type
         transforms.ToTensor(),
         transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
     ]),
     # Just normalization for validation
     "val": transforms.Compose([
-        transforms.Resize(256),
-        transforms.CenterCrop(256),
+        transforms.Resize(224),
+        transforms.CenterCrop(224),
+        transforms.ToTensor(),
+        transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
+    ]),
+    "test": transforms.Compose([
+        transforms.Resize(224),
+        transforms.CenterCrop(224),
         transforms.ToTensor(),
         transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
     ]),
@@ -209,7 +208,7 @@ with torch.no_grad():
         outputs = model_ft_resnet(images)
         _, predicted = torch.max(outputs, 1)
         c = (predicted == labels).squeeze()
-        if c.size()[0] == 4: 
+        if c.size()[0] == 4:
             for i in range(4):
                 label = labels[i]
                 class_correct[label] += c[i].item()

@@ -30,14 +30,14 @@ import torchvision.transforms as transforms
 import torch.optim as optim
 from torch.optim import lr_scheduler
 import torch.backends.cudnn as cudnn
-import time 
+import time
 import tqdm
 import random
 from PIL import Image
 train_on_gpu = True
 from torch.utils.data.sampler import SubsetRandomSampler
 from torch.optim.lr_scheduler import StepLR, ReduceLROnPlateau, CosineAnnealingLR
-try: 
+try:
     import torchbearer
 except:
     !pip install torchbearer
@@ -88,23 +88,22 @@ print("[Helper functions loaded...]")
 #--------------------- Load test datasets ------------------------------
 data_transforms = {
     "train": transforms.Compose([
-        transforms.RandomResizedCrop(256),  # resize the image to 256*256 pixels
-        transforms.CenterCrop(256),  # crop the image to 256*256 pixels about the center
+        transforms.RandomResizedCrop(224),  # resize the image to 224*224 pixels
+        transforms.CenterCrop(224),  # crop the image to 224*224 pixels about the center
         transforms.RandomHorizontalFlip(),  # convert the image to PyTorch Tensor data type
-        transforms.ToTensor(),
-        transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
-    ]),
-    "test": transforms.Compose([
-        transforms.RandomResizedCrop(256),
-        transforms.CenterCrop(256),
-        transforms.RandomHorizontalFlip(),
         transforms.ToTensor(),
         transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
     ]),
     # Just normalization for validation
     "val": transforms.Compose([
-        transforms.Resize(256),
-        transforms.CenterCrop(256),
+        transforms.Resize(224),
+        transforms.CenterCrop(224),
+        transforms.ToTensor(),
+        transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
+    ]),
+    "test": transforms.Compose([
+        transforms.Resize(224),
+        transforms.CenterCrop(224),
         transforms.ToTensor(),
         transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
     ]),
@@ -185,7 +184,7 @@ exp1_model = copy.deepcopy(model_ft) #make a copy of model so we don't mess up o
 num_patches = exp1_model.fc.weight.shape[1]
 
 ones = np.ones(num_patches) #Create selective dropout Tensor with alternating 1-0 pattern
-for i in range(ones.shape[0]): 
+for i in range(ones.shape[0]):
     if i % 2 == 1:
         ones[i] = ones[i] % 1
 ones_tensor = torch.from_numpy(ones)
@@ -205,11 +204,11 @@ predicted_classes = predictions.argmax(1).cpu()
 
 #Create vector with 1/4 0's and 3/4 1's
 fours = np.ones(num_patches) #Create selective dropout Tensor with alternating 1-0 pattern
-for i in range(fours.shape[0]): 
+for i in range(fours.shape[0]):
     if i < (num_patches / 4):
         fours[i] = 0
-        
-        
+
+
 #Random dropout 1
 exp3_modelv1 = copy.deepcopy(model_ft)
 
@@ -327,11 +326,11 @@ predicted_classes = predictions.argmax(1).cpu()
 
 #Create vector with 3/4 0's and 1/4 1's
 twentyfiveperc = np.ones(num_patches) #Create selective dropout Tensor with alternating 1-0 pattern
-for i in range(twentyfiveperc.shape[0]): 
+for i in range(twentyfiveperc.shape[0]):
     if i < (num_patches * 3 / 4):
         twentyfiveperc[i] = 0
 
-        
+
 #Random dropout 1
 exp4_modelv1 = copy.deepcopy(model_ft)
 

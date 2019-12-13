@@ -90,23 +90,22 @@ print("[Helper functions loaded...]")
 
 data_transforms = {
     "train": transforms.Compose([
-        transforms.RandomResizedCrop(256),  # resize the image to 256*256 pixels
-        transforms.CenterCrop(256),  # crop the image to 256*256 pixels about the center
-        transforms.RandomHorizontalFlip(),
-        transforms.ToTensor(), # convert the image to PyTorch Tensor data type
-        transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
-    ]),
-    "test": transforms.Compose([
-        transforms.RandomResizedCrop(256),
-        transforms.CenterCrop(256),
-        transforms.RandomHorizontalFlip(),
+        transforms.RandomResizedCrop(224),  # resize the image to 224*224 pixels
+        transforms.CenterCrop(224),  # crop the image to 224*224 pixels about the center
+        transforms.RandomHorizontalFlip(),  # convert the image to PyTorch Tensor data type
         transforms.ToTensor(),
         transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
     ]),
     # Just normalization for validation
     "val": transforms.Compose([
-        transforms.Resize(256),
-        transforms.CenterCrop(256),
+        transforms.Resize(224),
+        transforms.CenterCrop(224),
+        transforms.ToTensor(),
+        transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
+    ]),
+    "test": transforms.Compose([
+        transforms.Resize(224),
+        transforms.CenterCrop(224),
         transforms.ToTensor(),
         transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
     ]),
