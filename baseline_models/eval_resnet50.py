@@ -163,7 +163,6 @@ criterion = nn.CrossEntropyLoss()
 checkpoint = torch.load("./resnet50_baseline_model.pth", map_location=device)
 model_ft_resnet.load_state_dict(checkpoint['model_resnet50_state_dict'])
 optimizer_ft_resnet.load_state_dict(checkpoint['optimizer_resnet50_state_dict'])
-#rhist = checkpoint['rhist']
 print("--------Saved resnet50 weights loaded--------------------")
 
 
