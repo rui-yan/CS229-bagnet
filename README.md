@@ -20,7 +20,7 @@ Final project for CS229
 
 - The `flowers_original` directory contains the original downloaded flowers dataset, downloaded from Kaggle at: https://www.kaggle.com/alxmamaev/flowers-recognition.
 
-- The `flowers_tvtsplit` directory contains the flowers data split into 70\% training, 20\% validation, and 10\% test data subsets.
+- The `flowers_tvtsplit` directory contains the flowers data split into 70\% training, 20\% validation, and 10\% test data subsets obtained by running data_preprocessing.ipynb.
 
 - The `paperwork` directory contains the proposal, poster, final report and relevant figures for our CS229 project.
 
