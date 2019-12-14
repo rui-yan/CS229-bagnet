@@ -116,7 +116,7 @@ image_datasets = {x: datasets.ImageFolder("./data/test", data_transforms[x])
                   for x in ["train", "test", "val"]}
 
 # Create test dataloaders
-batch_size = 4
+batch_size = 32
 dataloaders_dict = {x: torch.utils.data.DataLoader(image_datasets[x],
                                                    batch_size=batch_size,
                                                    shuffle=True,
