@@ -12,12 +12,17 @@ Final project for CS229
 
 - `bagnet33_experiments.py` is the python script used to run and evaluate the patch blackout experiments.
 
+- `data_preprocessing.ipynb` includes the python code and outputs for data investigation and splitting for the flowers dataset.
+
+- `bagnet33_confmat.ipynb` includes the python code and outputs for BagNet-33 evaluation, with a main focus on its confusion matrix.
+
 - Performance of each model is stored in the `model_performance_results` directory, including loss_acc_plots, terminal output, and model checkpoints.
 
-- The 'flowers_original' directory contains the original downloaded flowers dataset, downloaded from Kaggle at: https://www.kaggle.com/alxmamaev/flowers-recognition.
+- The `flowers_original` directory contains the original downloaded flowers dataset, downloaded from Kaggle at: https://www.kaggle.com/alxmamaev/flowers-recognition.
 
-- The 'flowers_tvtsplit' directory contains the flowers data split into 70\% training, 20\% validation, and 10\% test data subsets.
+- The `flowers_tvtsplit` directory contains the flowers data split into 70\% training, 20\% validation, and 10\% test data subsets.
 
+- The `paperwork` directory contains the proposal, poster, final report and relevant figures for our CS229 project.
 
 References:
 - BagNets: "APPROXIMATING CNNS WITH BAG-OF-LOCAL FEATURES MODELS WORKS SURPRISINGLY WELL ON IMAGENET" - https://arxiv.org/pdf/1904.00760.pdf
