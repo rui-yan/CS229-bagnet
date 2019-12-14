@@ -16,14 +16,9 @@ Final project for CS229
 
 - The 'flowers_original' directory contains the original downloaded flowers dataset, downloaded from Kaggle at: https://www.kaggle.com/alxmamaev/flowers-recognition.
 
-- The 'flowers_tvtsplit' directory contains the flowers data split into 70% training, 20% validation, and 10% test data subsets.
+- The 'flowers_tvtsplit' directory contains the flowers data split into 70\% training, 20\% validation, and 10\% test data subsets.
 
 
 References:
-- BagNets
-1. "APPROXIMATING CNNS WITH BAG-OF-LOCAL FEATURES MODELS WORKS SURPRISINGLY WELL ON IMAGENET" - https://arxiv.org/pdf/1904.00760.pdf
-2. Some blogs about bagnet
-	- https://medium.com/bethgelab/neural-networks-seem-to-follow-a-puzzlingly-simple-strategy-to-classify-images-f4229317261f
-	- https://blog.evjang.com/2019/02/bagnet.html
-
+- BagNets: "APPROXIMATING CNNS WITH BAG-OF-LOCAL FEATURES MODELS WORKS SURPRISINGLY WELL ON IMAGENET" - https://arxiv.org/pdf/1904.00760.pdf
 - Datasets: https://www.kaggle.com/alxmamaev/flowers-recognition
