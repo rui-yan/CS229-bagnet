@@ -25,9 +25,12 @@ print("PyTorch Version: ",torch.__version__)
 print("Torchvision Version: ",torchvision.__version__)
 
 # Top level data directory
-data_dir = './CS229-final-project/'
+data_dir = './flowers_tvtsplit/'
 
-model_name = "resnet50"
+# Save our result (model checkpoints, loss_acc data, plots)to this directory
+save_to_dir = './model_performance_results/resnet50_baseline_results/'
+
+model_name = 'resnet50'
 
 # Number of classes in  the dataset
 num_classes = 5
@@ -194,9 +197,9 @@ data_transforms = {
 print("Initializing Datasets and Dataloaders...")
 
 # Create training and validation datasets
-train_data = torchvision.datasets.ImageFolder("./flowers_tvtsplit/train/", data_transforms["train"])
-val_data = torchvision.datasets.ImageFolder("./flowers_tvtsplit/val/", data_transforms["val"])
-test_data = torchvision.datasets.ImageFolder("./flowers_tvtsplit/test/", data_transforms["test"])
+train_data = torchvision.datasets.ImageFolder(data_dir+"train/", data_transforms["train"])
+val_data = torchvision.datasets.ImageFolder(data_dir+"val/", data_transforms["val"])
+test_data = torchvision.datasets.ImageFolder(data_dir+"test/", data_transforms["test"])
 
 # Create training and validation dataloaders
 dataloaders_dict = {"train": torch.utils.data.DataLoader(train_data, batch_size=batch_size,
@@ -209,9 +212,8 @@ dataloaders_dict = {"train": torch.utils.data.DataLoader(train_data, batch_size=
 
 ##---------------------------- ResNet-50 Model -------------------------------##
 
-print('==> Resnet-50 model')
-
 ##---- Load and modify model ----##
+print('==> Resnet-50 model')
 model_ft = initialize_model(model_name, num_classes, feature_extract, use_pretrained=True)
 
 # Check output layer matches number of output categories of our dataset.
@@ -240,7 +242,7 @@ else:
 
 optimizer_ft = optim.SGD(params_to_update, lr=0.001, momentum=0.9)
 
-#---- Train model -----#
+##---- Train and evaluate -----#
 # Setup the loss fxn
 print("[Using CrossEntropyLoss ...]")
 criterion = nn.CrossEntropyLoss()
@@ -254,10 +256,10 @@ model_ft, train_acc, train_loss, val_acc, val_loss = train_model(model_ft, datal
 print("==> Saving model...")
 torch.save({'model_resnet50_state_dict': model_ft.state_dict(),
             'optimizer_resnet50_state_dict': optimizer_ft.state_dict()
-            }, './resnet50/resnet50_baseline_model.pth')
+            }, save_to_dir + 'resnet50_baseline_model.pth')
 
 print("==> Saving loss and accuracy data...")
-out=open('./resnet50/resnet50_loss_acc_data.txt', 'w')
+out=open(save_to_dir + 'resnet50_loss_acc_data.txt', 'w')
 out.write(str(train_acc) + "\n")
 out.write(str(train_loss) + "\n")
 out.write(str(val_acc) + "\n")
@@ -279,12 +281,12 @@ ax[1].set_xlabel("epochs")
 ax[1].set_ylabel("accuracy")
 ax[1].legend()
 
-plt.savefig("./resnet50/resnet50_loss_acc_plot.png")
+plt.savefig(save_to_dir + 'resnet50_loss_acc_plot.png')
 
 
 ##------- Test model ------##
 print("==> Testing model...")
-checkpoint = torch.load('./resnet50/resnet50_baseline_model.pth')
+checkpoint = torch.load(save_to_dir + 'resnet50_baseline_model.pth')
 model_ft.load_state_dict(checkpoint['model_resnet50_state_dict'])
 
 def test(model, dataloaders, criterion):

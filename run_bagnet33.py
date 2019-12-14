@@ -26,7 +26,10 @@ print("PyTorch Version: ",torch.__version__)
 print("Torchvision Version: ",torchvision.__version__)
 
 # Top level data directory. Here we assume the format of the directory conforms to the ImageFolder structure
-data_dir = "./CS229-final-project/"
+data_dir = './flowers_tvtsplit/'
+
+# Save our result (model checkpoints, loss_acc data, plots)to this directory
+save_to_dir = './model_performance_results/bagnet33_baseline_results/'
 
 model_name = "bagnet33"
 
@@ -198,9 +201,9 @@ data_transforms = {
 print("Initializing Datasets and Dataloaders...")
 
 # Create training and validation datasets
-train_data = torchvision.datasets.ImageFolder("./flowers_tvtsplit/train/", data_transforms["train"])
-val_data = torchvision.datasets.ImageFolder("./flowers_tvtsplit/val/", data_transforms["val"])
-test_data = torchvision.datasets.ImageFolder("./flowers_tvtsplit/test/", data_transforms["test"])
+train_data = torchvision.datasets.ImageFolder(data_dir + "train/", data_transforms["train"])
+val_data = torchvision.datasets.ImageFolder(data_dir + "val/", data_transforms["val"])
+test_data = torchvision.datasets.ImageFolder(data_dir + "test/", data_transforms["test"])
 
 # Create training and validation dataloaders
 dataloaders_dict = {"train": torch.utils.data.DataLoader(train_data, batch_size=batch_size,
@@ -257,10 +260,10 @@ model_ft, train_acc, train_loss, val_acc, val_loss = train_model(model_ft, datal
 print("==> Saving model...")
 torch.save({'model_bagnet33_state_dict': model_ft.state_dict(),
             'optimizer_bagnet33_state_dict': optimizer_ft.state_dict()
-            }, './bagnet33/bagnet33_baseline_model.pth')
+            }, save_to_dir + 'bagnet33_baseline_model.pth')
 
 print("==> Saving loss and accuracy data...")
-out=open('./bagnet33/bagnet33_loss_acc_data.txt', 'w')
+out=open(save_to_dir + 'bagnet33_loss_acc_data.txt', 'w')
 out.write(str(train_acc) + "\n")
 out.write(str(train_loss) + "\n")
 out.write(str(val_acc) + "\n")
@@ -282,12 +285,12 @@ ax[1].set_xlabel("epochs")
 ax[1].set_ylabel("accuracy")
 ax[1].legend()
 
-plt.savefig("./bagnet33/bagnet33_loss_acc_plot.png")
+plt.savefig(save_to_dir + 'bagnet33_loss_acc_plot.png')
 
 
 ##------- Test model ------##
 print("==> Testing model...")
-checkpoint = torch.load('./bagnet33/bagnet33_baseline_model.pth')
+checkpoint = torch.load(save_to_dir + 'bagnet33_baseline_model.pth')
 model_ft.load_state_dict(checkpoint['model_bagnet33_state_dict'])
 
 def test(model, dataloaders, criterion):

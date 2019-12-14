@@ -13,7 +13,7 @@ model_urls = {
             'bagnet9': 'https://bitbucket.org/wielandbrendel/bag-of-feature-pretrained-models/raw/249e8fa82c0913623a807d9d35eeab9da7dcc2a8/bagnet8-34f4ccd2.pth.tar',
             'bagnet17': 'https://bitbucket.org/wielandbrendel/bag-of-feature-pretrained-models/raw/249e8fa82c0913623a807d9d35eeab9da7dcc2a8/bagnet16-105524de.pth.tar',
             'bagnet33': 'https://bitbucket.org/wielandbrendel/bag-of-feature-pretrained-models/raw/249e8fa82c0913623a807d9d35eeab9da7dcc2a8/bagnet32-2ddd53ed.pth.tar',
-                            }
+            }
 
 
 class Bottleneck(nn.Module):
@@ -74,9 +74,9 @@ class BagNet(nn.Module):
         self.layer1 = self._make_layer(block, 64, layers[0], stride=strides[0], kernel3=kernel3[0], prefix='layer1')
         self.layer2 = self._make_layer(block, 128, layers[1], stride=strides[1], kernel3=kernel3[1], prefix='layer2')
         self.layer3 = self._make_layer(block, 256, layers[2], stride=strides[2], kernel3=kernel3[2], prefix='layer3')
-        self.layer4 = self._make_layer(block, 512, layers[3], stride=strides[3], kernel3=kernel3[3], prefix='layer4')
+        self.layer4 = self._make_layer(block, 512, layers[3], stride=strides[3], kernel3=kernel3[3], prefix='layer4') #In this code, Bottleneck is used as block, so block.expansion = 4
         self.avgpool = nn.AvgPool2d(1, stride=1)
-        self.fc = nn.Linear(512 * block.expansion, num_classes)
+        self.fc = nn.Linear(512 * block.expansion, num_classes) #The fc layer is a linear layer with input dimensions 512*4, num_classes (5 in our case)
         self.avg_pool = avg_pool
         self.block = block
 
@@ -135,7 +135,10 @@ def bagnet33(pretrained=False, strides=[2, 2, 2, 1], **kwargs):
     """
     model = BagNet(Bottleneck, [3, 4, 6, 3], strides=strides, kernel3=[1,1,1,1], **kwargs)
     if pretrained:
-        model.load_state_dict(model_zoo.load_url(model_urls['bagnet33']))
+        if torch.cuda.is_available():
+            model.load_state_dict(model_zoo.load_url(model_urls['bagnet33']))
+        else:
+            model.load_state_dict(model_zoo.load_url(model_urls['bagnet33'], map_location=torch.device('cpu')))
     return model
 
 def bagnet17(pretrained=False, strides=[2, 2, 2, 1], **kwargs):
@@ -145,7 +148,10 @@ def bagnet17(pretrained=False, strides=[2, 2, 2, 1], **kwargs):
     """
     model = BagNet(Bottleneck, [3, 4, 6, 3], strides=strides, kernel3=[1,1,1,0], **kwargs)
     if pretrained:
-        model.load_state_dict(model_zoo.load_url(model_urls['bagnet17']))
+        if torch.cuda.is_available():
+            model.load_state_dict(model_zoo.load_url(model_urls['bagnet17']))
+        else:
+            model.load_state_dict(model_zoo.load_url(model_urls['bagnet17'], map_location=torch.device('cpu')))
     return model
 
 def bagnet9(pretrained=False, strides=[2, 2, 2, 1], **kwargs):
@@ -155,5 +161,8 @@ def bagnet9(pretrained=False, strides=[2, 2, 2, 1], **kwargs):
     """
     model = BagNet(Bottleneck, [3, 4, 6, 3], strides=strides, kernel3=[1,1,0,0], **kwargs)
     if pretrained:
-        model.load_state_dict(model_zoo.load_url(model_urls['bagnet9']))
+        if torch.cuda.is_available():
+            model.load_state_dict(model_zoo.load_url(model_urls['bagnet9']))
+        else:
+            model.load_state_dict(model_zoo.load_url(model_urls['bagnet9'], map_location=torch.device('cpu')))
     return model

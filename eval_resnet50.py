@@ -47,9 +47,24 @@ import scipy.special
 import bagnets.pytorchnet
 print("[libraries successfully installed...]")
 
+# Top level data directory. Here we assume the format of the directory conforms to the ImageFolder structure
+data_dir = './flowers_tvtsplit/'
+
+# Save our result (model checkpoints, loss_acc data, plots)to this directory
+saved_model_dir = './model_performance_results/resnet50_baseline_results/'
+
+model_name = 'resnet50'
+
+# Number of classes in  the dataset
+num_classes = 5
+
+# Batch size for training (standardized to BagNet baseline)
+batch_size = 32
+
+# Flag for feature extracting. When False, we finetune the whole model, when True we only update the reshaped layer params
+feature_extract = True
 
 #-------------------- Some Helper Functions ---------------------------
-
 def set_parameter_requires_grad(model, feature_extracting):
     """
     This function sets all parameters of model to False, which means we don't fine
@@ -80,9 +95,7 @@ def initialize_model(model_name, num_classes, feature_extract, use_pretrained=Tr
 
     return model_ft
 
-
 #--------------------- Load test datasets ------------------------------
-
 data_transforms = {
     "train": transforms.Compose([
         transforms.RandomResizedCrop(224),  # resize the image to 224*224 pixels
@@ -106,34 +119,26 @@ data_transforms = {
     ]),
 }
 
-print("[Initializing test datasets and dataloaders...]")
+print("Initializing Datasets and Dataloaders...")
 
-# Create test datasets
-image_datasets = {x: datasets.ImageFolder("./data/test", data_transforms[x])
-                  for x in ["train", "test", "val"]}
+# Create training and validation datasets
+train_data = torchvision.datasets.ImageFolder(data_dir + "train/", data_transforms["train"])
+val_data = torchvision.datasets.ImageFolder(data_dir + "val/", data_transforms["val"])
+test_data = torchvision.datasets.ImageFolder(data_dir + "test/", data_transforms["test"])
 
-# Create test dataloaders
-batch_size = 4
-dataloaders_dict = {x: torch.utils.data.DataLoader(image_datasets[x],
-                                                   batch_size=batch_size,
-                                                   shuffle=True,
-                                                   num_workers=4)
-                    for x in ["train", "test", "val"]}
+# Create training and validation dataloaders
+dataloaders_dict = {"train": torch.utils.data.DataLoader(train_data, batch_size=batch_size,
+                    shuffle=True, num_workers=2),
+                    "val": torch.utils.data.DataLoader(val_data, batch_size=batch_size,
+                    shuffle=False, num_workers=2),
+                    "test": torch.utils.data.DataLoader(test_data, batch_size=batch_size,
+                    shuffle=False, num_workers=2)}
 
-train_loader = dataloaders_dict["train"]
-val_loader = dataloaders_dict["val"]
-test_loader = dataloaders_dict["test"]
-
-# Detect if we have a GPU available
-device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-print("[Using", device , "...]")
-
+train_loader = dataloaders_dict['train']
+val_loader = dataloaders_dict['val']
+test_loader = dataloaders_dict['test']
 
 #--------------------- Load and modify models ------------------------------
-
-feature_extract = True
-model_name = 'resnet'
-num_classes = 5
 model_ft_resnet = initialize_model(model_name, num_classes, feature_extract, use_pretrained=True)
 model_ft_resnet = model_ft_resnet.to(device)
 
@@ -156,14 +161,11 @@ optimizer_ft_resnet = optim.SGD(params_to_update, lr=0.001, momentum=0.9)
 print("[Using CrossEntropyLoss ...]")
 criterion = nn.CrossEntropyLoss()
 
-
 #--------------- Load saved weights --------------------------------
-
-checkpoint = torch.load("./resnet50_baseline_model.pth", map_location=device)
+checkpoint = torch.load(saved_model_dir + "resnet50_baseline_model.pth", map_location=device)
 model_ft_resnet.load_state_dict(checkpoint['model_resnet50_state_dict'])
 optimizer_ft_resnet.load_state_dict(checkpoint['optimizer_resnet50_state_dict'])
 print("--------Saved resnet50 weights loaded--------------------")
-
 
 #--------------- Investigate performance on test datasets ----------
 
@@ -175,11 +177,9 @@ predicted_classes = predictions.argmax(1).cpu()
 
 
 #--------------- Some model performance visualizations & stats ----------
-
 '''
 CREDITS: Code adapted from tutorial: https://pytorch.org/tutorials/beginner/blitz/cifar10_tutorial.html#sphx-glr-beginner-blitz-cifar10-tutorial-py
 '''
-
 # Function to show an image
 def imshow(img):
     img = img / 2 + 0.5     # unnormalize
