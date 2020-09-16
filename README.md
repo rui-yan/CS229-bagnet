@@ -1,4 +1,4 @@
-# CS229-final-project
+# CS229-bagnet (Final Project)
 
 Final project for CS229
 
